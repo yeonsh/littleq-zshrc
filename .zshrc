@@ -1,6 +1,9 @@
 # use ~/.profile
 source $HOME/.profile
 
+# Libraries
+source $HOME/.zshrc_virtualenv
+
 # show tasks
 task
 
@@ -11,80 +14,10 @@ httpserver () {
     python -m SimpleHTTPServer $1 ${@:2}
 }
 
-## Virtuan Environment Functions
-# functions to activate virtual environments in the default directory.
-# Available commands:
-# * actenv <ve-name>
-# * deactenv
-# * lsenv
-# * mkenv <new-ve-name>
-# * rmenv <to-delete-ve-name>
-# * restoreenv <ve-name>
-# * cdenv (within that virtual environment) 
-actenv () {
-    if [ $# -eq  1 ] ; then
-        source $HOME/opt/virtualenv/$1/bin/activate
-    fi
-
-    if [ $? -eq 0 ] ; then
-        CHANGE_MSG="Changed your current virtual environment to $1 successfully."
-        COWSAY_MSG="`echo $CHANGE_MSG | cowsay`"
-        echo "\x1b[1;32m$COWSAY_MSG\x1b[0m"
-    else
-        CHANGE_MSG="Please specify a correct virtual environment you would like to activate."
-        COWSAY_MSG="`echo $CHANGE_MSG | cowsay`"
-        echo "\x1b[1;31m$COWSAY_MSG\x1b[0m"
-    fi
-}
-alias deactenv="deactivate"
-alias lsenv="ls -1 ~/opt/virtualenv/"
-mkenv () {
-# maka a new environment into ~/opt/virtualenv
-    mkdir -p ~/opt/virtualenv
-
-    if [ $# -eq 1 ] ; then
-        virtualenv ~/opt/virtualenv/$1;
-    fi
-    if [ $? -eq 0 ] ; then
-        echo "\x1b[1;32mSuccessfully created a virtual environment: $1\x1b[0m"
-    else
-        echo "\x1b[1;31mFailed to create virtual environment.\x1b[0m"
-    fi
+man () {
+    /usr/bin/man $@ | col -b | vim -R -c 'set ft=,am nomod nolist' -
 }
 
-rmenv () {
-    if [ $# -eq 1 ] ; then
-        rm -rf /tmp/deleted-virtenv-$1
-        mv ~/opt/virtualenv/$1 /tmp/deleted-virtenv-$1;
-    fi
-
-    if [ $? -eq 0 ] ; then
-        echo "\x1b[1;32mSuccessfully removed a virtual environment: $1\x1b[0m"
-    else
-        echo "\x1b[1;31mFailed to remove virtual environment.\x1b[0m"
-    fi
-}
-
-restoreenv () {
-    if [ $# -eq 1 ] ; then
-        mv /tmp/deleted-virtenv-$1 ~/opt/virtualenv/$1;
-    fi
-
-    if [ $? -eq 0 ] ; then
-        echo "\x1b[1;32mSuccessfully restored a virtual environment: $1\x1b[0m"
-    else
-        echo "\x1b[1;31mFailed to restore virtual environment.\x1b[0m"
-    fi
-}
-
-cdenv () {
-    if [ -z "$VIRTUAL_ENV" ] ; then
-        echo "\x1b[1;31mNot in a virtual environment.\x1b[0m"
-    else
-        cd $VIRTUAL_ENV
-    fi
-}
-## End: Virtual Environment Functions
 
 # convert the encoding of files to UTF-8
 to_utf8 () {
@@ -133,36 +66,6 @@ alias omgtt="actenv omgtt"
 
 
 
-## Useful Commands for MongoDB ##
-mongostart () {
-    sudo mongod -f /opt/local/etc/mongodb/mongod.conf $@;
-}
-mongostop_func () {
-
-#  local mongopid=`ps -o pid,command -ax | grep mongod | awk '!/awk/ && !/grep/{print $1}'`;
-#  just find a simpler way
-        local mongopid=`less /opt/local/var/db/mongodb_data/mongod.lock 2> /dev/null`;
-        if [[ $mongopid =~ [[:digit:]] ]]; then
-            sudo kill -15 $mongopid;
-            if [ $? -eq 1 ]; then
-                sudo echo "" > /opt/local/var/db/mongodb_data/mongod.lock;
-                mongopid=`ps -o pid,command -ax | grep mongod | awk '!/awk/ && !/grep/{print $1}'`;
-                if [[ $mongopid =~ [[:digit:]] ]]; then
-                    sudo kill -15 $mongopid;
-                fi
-            fi
-            echo mongod process $mongopid terminated;
-        else
-            echo mongo process $mongopid not exist;
-        fi
-}
-alias mongostop="mongostop_func"
-
-# aliases for start/stoping mysql server
-
-alias mysqlstart='sudo mysqld_safe5'
-alias mysqlstop='mysqladmin5 -u root -p shutdown'
-
 
 ## Function to connect the instances in the internal cloud (PLSM Cloud)
 connect_plsm_instance () {
@@ -177,28 +80,6 @@ connect_plsm_instance () {
 ## Function to check the ports are listening any ports on this machine
 check_open_port () {
     sudo lsof -i -P | grep -i "listen"
-}
-
-## useful commands for start/stop nginx
-alias nginxstart='sudo /opt/local/sbin/nginx'
-alias nginxstop='sudo kill `cat /opt/local/var/run/nginx/nginx.pid`'
-alias nginxrestart='nginxstop;nginxstart'
-
-
-#if [ $SHLVL = 2 ]; then
-#    export ROOT_SH_PID=$$;
-#fi
-#alias quit="kill -9 $ROOT_SH_PID";
-
-#if [ $SHLVL = 1 ]&&[ $TERM_PROGRAM = "iTerm.app" ]; then
-#    export ROOT_SH_PID=$$;
-#    /opt/local/bin/tmux -2;
-#
-#fi
-#
-
-google () {
-    echo "hello $@"
 }
 
 
