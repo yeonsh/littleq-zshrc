@@ -1,3 +1,4 @@
+#!/usr/bin/env zsh
 ## Virtuan Environment Functions
 # functions to activate virtual environments in the default directory.
 # Available commands:

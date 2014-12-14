@@ -1,3 +1,4 @@
+#!/usr/bin/env zsh
 # use ~/.profile
 source $HOME/.profile
 
