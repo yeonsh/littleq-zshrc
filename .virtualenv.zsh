@@ -1,6 +1,4 @@
-#!/usr/bin/env zsh
-
-## Virtual Environment Functions
+## Virtuan Environment Functions
 # functions to activate virtual environments in the default directory.
 # Available commands:
 # * actenv [<ve-name>] (without argument meant you want to activate a local virtual environment)
@@ -11,7 +9,6 @@
 # * restoreenv <ve-name>
 # * cdenv (within that virtual environment) 
 #
-
 actenv () {
     local env_name
     if [ $# -eq 0 ] ; then
