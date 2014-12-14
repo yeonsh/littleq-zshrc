@@ -1,9 +1,10 @@
 #!/usr/bin/env zsh
+
 # use ~/.profile
 source $HOME/.profile
 
 # Libraries
-source $HOME/.virtualenv_zshrc
+source $HOME/.virtualenv.zsh
 
 # show tasks
 task
