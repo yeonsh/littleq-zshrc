@@ -3,7 +3,7 @@ source $HOME/.profile
 
 # Libraries
 source ~/github/my-zshrc/.virtalenv.zshrc
-source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source ~/github/my-zshrc/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 
 #[[ -s "$HOME/.pythonbrew/etc/bashrc" ]] && source "$HOME/.pythonbrew/etc/bashrc"
