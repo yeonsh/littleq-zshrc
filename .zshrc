@@ -291,10 +291,15 @@ function precmd {
     local TERMWIDTH
     (( TERMWIDTH = ${COLUMNS} - 1 ))
 
+    ###
+    # Compose status pr string
 
+    STATUS_LINE=''
+    STATUS_LINE_PR=''
+
+    update_job_num
     update_git_branch
     update_virtualenv_name
-
     
     ###
     # Truncate the path if it's too long.
@@ -304,9 +309,7 @@ function precmd {
     
     local promptsize=${#${(%):---(%m@%n:%l)()--}}
     local pwdsize=${#${(%):-%~}}
-    local gitbranchsize=${#GIT_BRANCH}
-    local virtualenvnamesize=${#VIRTUAL_ENV_NAME}
-    let "total_occupied=$promptsize+$pwdsize+$gitbranchsize+$virtualenvnamesize"
+    let "total_occupied=$promptsize+$pwdsize+${#STATUS_LINE}"
 
     if [[ $total_occupied -gt $TERMWIDTH ]]; then
         ###
@@ -417,8 +420,6 @@ setprompt () {
     fi
 
 
-
-    
     
     ###
     # APM detection
@@ -434,46 +435,85 @@ setprompt () {
     
     ###
     # Finally, the prompt.
+
+    ## COLOR DEFINITION
+    PR_PARENTHESE_COLOR=${PR_LIGHT_BLUE}
+    PR_CORNER_COLOR=${PR_GREEN}
+    PR_LINE_COLOR=${PR_LIGHT_GREEN}
+
     
     PROMPT='$PR_SET_CHARSET$PR_STITLE${(e)PR_TITLEBAR}\
-$PR_CYAN$PR_SHIFT_IN$PR_ULCORNER$PR_BLUE$PR_HBAR$PR_SHIFT_OUT(\
-$PR_GREEN%(!.%SROOT%s.%n)$PR_MAGENTA@%m>$PR_RED%l$GIT_BRANCH_PR$VIRTUAL_ENV_NAME_PR\
-$PR_BLUE)$PR_SHIFT_IN${(e)PR_FILLBAR}$PR_SHIFT_OUT(\
+$PR_LINE_COLOR$PR_SHIFT_IN$PR_CORNER_COLOR$PR_ULCORNER$PR_LINE_COLOR$PR_HBAR$PR_SHIFT_OUT$PR_PARENTHESE_COLOR(\
+$PR_BLUE%(!.%SROOT%s.%n)$PR_RED@%m>$PR_YELLOW%l$STATUS_LINE_PR\
+$PR_PARENTHESE_COLOR)$PR_LINE_COLOR$PR_SHIFT_IN$PR_LINE_COLOR${(e)PR_FILLBAR}$PR_LINE_COLOR$PR_SHIFT_OUT$PR_PARENTHESE_COLOR(\
 $PR_MAGENTA%$PR_PWDLEN<...<%~%<<\
-$PR_BLUE)$PR_SHIFT_IN$PR_HBAR$PR_CYAN$PR_URCORNER$PR_SHIFT_OUT\
+$PR_PARENTHESE_COLOR)$PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_CORNER_COLOR$PR_URCORNER$PR_SHIFT_OUT\
 
-$PR_CYAN$PR_SHIFT_IN$PR_LLCORNER$PR_BLUE$PR_HBAR$PR_SHIFT_OUT(\
+$PR_LINE_COLOR$PR_SHIFT_IN$PR_CORNER_COLOR$PR_LLCORNER$PR_LINE_COLOR$PR_HBAR$PR_SHIFT_OUT$PR_PARENTHESE_COLOR(\
 ${(e)PR_APM}$PR_YELLOW$$\
-$PR_LIGHT_BLUE:%(!.$PR_RED.$PR_CYAN)%#$PR_BLUE)\
+$PR_LIGHT_BLUE:%(!.$PR_RED.$PR_NO_COLOUR)%#$PR_PARENTHESE_COLOR)\
 $PR_NO_COLOUR '
     
-    RPROMPT='$PR_BLUE($PR_YELLOW%D{%m/%d-%H:%M}$PR_BLUE)$PR_SHIFT_IN$PR_HBAR$PR_CYAN$PR_LRCORNER$PR_SHIFT_OUT$PR_NO_COLOUR'
+    RPROMPT='$PR_PARENTHESE_COLOR($PR_YELLOW%D{%m/%d-%H:%M}$PR_PARENTHESE_COLOR)$PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_CORNER_COLOR$PR_LRCORNER$PR_LINE_COLOR$PR_SHIFT_OUT$PR_NO_COLOUR'
     
-    PS2='$PR_CYAN$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT\
-$PR_BLUE$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT(\
-$PR_LIGHT_GREEN%_$PR_BLUE)$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT\
-$PR_CYAN$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT${PR_RED}o)$PR_NO_COLOUR '
+    PS2='$PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT\
+$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT$PR_PARENTHESE_COLOR(\
+$PR_YELLOW%_$PR_PARENTHESE_COLOR)$PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT\
+$PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT$PR_PARENTHESE_COLOR)$PR_NO_COLOUR '
 }
 
-update_git_branch() {
-    if [ "`git_branch 2> /dev/null`" ] ; then
-        GIT_BRANCH_PR="$PR_BLUE|${PR_YELLOW}git::`git_branch`"
-        GIT_BRANCH="|git::`git_branch`"
+add_update_status() {
+    # script to add status in one line
+    # usage: add_update_status git command $PR_GREEN
+    local COLOR_CODE=$3
+    local RESET_COLOR_CODE=$PR_NO_COLOUR
+
+    local prefix=$1
+    local cmd=$2
+    local extra_command=$4
+    
+    # the same reason of CMD_STRING and CMD_STRING_PR
+    local seperator=\:\:
+    local color_seperator=${COLOR_CODE}$seperator${COLOR_CODE}
+
+    local execute_result=`eval $cmd 2> /dev/null`
+
+    if [ "$execute_result" ] ; then
+        # CMD_STRING and CMD_STRING_PR need to be in the same length, but one with the color code, to avoid length calculation includes color code as strings.
+        CMD_STRING="|${prefix}${seperator}${execute_result}"
+        CMD_STRING_PR="${RESET_COLOR_CODE}|${COLOR_CODE}${prefix}${color_seperator}${execute_result}$RESET_COLOR_CODE"
     else
-        GIT_BRANCH_PR=""
-        GIT_BRANCH=""
+        CMD_STRING=""
+        CMD_STRING_PR=""
     fi
+
+    STATUS_LINE=$STATUS_LINE$CMD_STRING
+    STATUS_LINE_PR=$STATUS_LINE_PR$CMD_STRING_PR
+
+    $extra_command
+}
+
+## Status :: Git Branch
+
+update_git_branch() {
+    add_update_status git git_branch ${PR_LIGHT_GREEN}
+}
+
+## Status :: Virtual Environment
+
+clean_virtualenv_name() {
+    # clean the virtualenv title
+    PS1=`echo $PS1 | sed "s/^($(basename $VIRTUAL_ENV 2> /dev/null))//"` 
 }
 
 update_virtualenv_name() {
-    PS1=`echo $PS1 | sed "s/^($(basename $VIRTUAL_ENV 2> /dev/null))//"` 
-    if [ "`basename $VIRTUAL_ENV 2> /dev/null`" ] ; then
-        VIRTUAL_ENV_NAME="|venv::`basename $VIRTUAL_ENV`"
-        VIRTUAL_ENV_NAME_PR="$PR_BLUE|${PR_GREEN}venv::`basename $VIRTUAL_ENV`"
-    else
-        VIRTUAL_ENV_NAME=""
-        VIRTUAL_ENV_NAME_PR=""
-    fi
+    add_update_status env "/usr/bin/basename $VIRTUAL_ENV" ${PR_RED} clean_virtualenv_name
+}
+
+## Status :: Jobs Number
+
+update_job_num() {
+    add_update_status job "jobs | gwc -l" ${PR_LIGHT_BLUE}
 }
 
 show_info () {
@@ -481,7 +521,7 @@ show_info () {
     # show path
     #echo "$fg[yellow][Current path]\n$reset_color$PATH"
     # show network info
-    echo "$fg[yellow][Networking]$reset_color"
+    #echo "$fg[yellow][Networking]$reset_color"
 }
 
 # start prompt
