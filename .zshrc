@@ -6,8 +6,6 @@ source ~/github/my-zshrc/.virtualenv.zsh
 source ~/github/my-zshrc/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 
-#[[ -s "$HOME/.pythonbrew/etc/bashrc" ]] && source "$HOME/.pythonbrew/etc/bashrc"
-
 httpserver () {
     sleep 1 && open "http://localhost:$1/" &
     python -m SimpleHTTPServer $1 ${@:2}
@@ -77,6 +75,7 @@ swap_name () {
         mv $1 $temp_swap_filename;
         mv $2 $1;
         mv $temp_swap_filename $2;
+        rm $temp_swap_filename
         echo "$2 <--> $1";
     fi
 }
@@ -95,9 +94,6 @@ plaintext() {
     pbpaste -Prefer txt | pbcopy
 }
 
-alias sharecity="actenv sharecity"
-alias omgtt="actenv omgtt"
-
 
 ## Function to connect the instances in the internal cloud (PLSM Cloud)
 connect_plsm_instance () {
@@ -110,17 +106,10 @@ connect_plsm_instance () {
 }
 
 ## Function to check the ports are listening any ports on this machine
-check_open_port () {
+openports () {
     sudo lsof -i -P | grep -i "listen"
 }
 
-
-#RPROMPT=#'%/'
-#PROMPT='%{[36m%}%n%{[35m%}@%{[34m%}%M %{[33m%}%D %T  %{[32m%}%/ 
-#%{[31m%}>>%{[m%}'
-
-
-#. ~/.profile
 
 #关于历史纪录的配置
 # enhance Chinese supports for auto completion list
@@ -140,7 +129,7 @@ setopt HIST_IGNORE_DUPS
 limit coredumpsize 0
 
 #Emacs风格键绑定
-bindkey -e
+#bindkey -e
 #设置DEL键为向后删除
 bindkey "\e[3~" delete-char
 
@@ -157,7 +146,7 @@ setopt MENU_COMPLETE
 
 
 # Completion caching
-zstyle ':completion::complete:*' use-cache off
+zstyle ':completion::complete:*' use-cache on
 zstyle ':completion::complete:*' cache-path .zcache
 zstyle ':completion:*:cd:*' ignore-parents parent pwd
 
@@ -197,6 +186,7 @@ fpath=(
     $HOME/github/zsh-completions/src
     $HOME/github/maven-zsh-completion
     $fpath)
+
 # debugging gcloud zsh completion
 fpath=($HOME/github/gcloud-zsh-completion/src $fpath)
 
@@ -206,8 +196,8 @@ compdef pkill=kill
 compdef pkill=killall
 compdef hub=git
 
-export LSCOLORS='exfxbxdxcxegedabagacad'
-export ZLSCOLORS="${LS_COLORS}"
+#export LSCOLORS='exfxbxdxcxegedabagacad'
+#export ZLSCOLORS="${LS_COLORS}"
 zmodload zsh/complist
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
@@ -262,34 +252,19 @@ if [ $MACHINE_OS = "ubuntu" ]; then
     alias pbpaste="xclip -selection clipboard -o"
 fi
 
-
 #路径别名 进入相应的路径时只要 cd ~xxx
 hash -d download="$HOME/Downloads"
 hash -d dropbox="$HOME/Dropbox"
-hash -d gulu="$HOME/github/thenewgulu"
-hash -d ss="$HOME/repository/nccu-study-net"
-hash -d omgtt="$HOME/github/omgtt"
-hash -d jafar="$HOME/github/jafar"
 hash -d github="$HOME/github"
 hash -d googlecode="$HOME/googlecode"
-hash -d show="$HOME/googlecode/showinventor/inventor-show"
-
-##for Emacs在Emacs终端中使用Zsh的一些设置 不推荐在Emacs中使用它
-if [[ "$TERM" == "dumb" ]]; then
-setopt No_zle
-PROMPT='%n@%M %/
->>'
-alias ls='ls -vG'
-fi 
-
-
+hash -d tagtoo="$HOME/github_tagtoo/"
 
 
 #效果超炫的提示符，如需要禁用，注释下面配置   
 function precmd {
     
     local TERMWIDTH
-    (( TERMWIDTH = ${COLUMNS} - 1 ))
+    (( TERMWIDTH = ${COLUMNS} ))
 
     ###
     # Compose status pr string
@@ -297,9 +272,13 @@ function precmd {
     STATUS_LINE=''
     STATUS_LINE_PR=''
 
+    # status
     update_job_num
     update_git_branch
     update_virtualenv_name
+
+    # info
+    update_battery_info
     
     ###
     # Truncate the path if it's too long.
@@ -328,14 +307,6 @@ function precmd {
     #echo "PR_PWDLEN: $PR_PWDLEN"
     
     
-    ###
-    # Get APM info.
-    
-    #if which ibam > /dev/null; then
-    #PR_APM_RESULT=`ibam --percentbattery`
-    #elif which apm > /dev/null; then
-    #PR_APM_RESULT=`apm`
-    #fi
 }
 
 
@@ -418,48 +389,48 @@ setprompt () {
       PR_STITLE=''
       #PR_STITLE=$'%{\ekzsh\e\\%}'
     fi
-
-
-    
-    ###
-    # APM detection
-    
-    #if pythonpython > /dev/null; then
-    #  PR_APM='$PR_RED${${PR_APM_RESULT[(f)1]}[(w)-2]}%%(${${PR_APM_RESULT[(f)3]}[(w)-1]})$PR_LIGHT_BLUE:'
-    #elif which apm > /dev/null; then
-    #  PR_APM='$PR_RED${PR_APM_RESULT[(w)5,(w)6]/\% /%%}$PR_LIGHT_BLUE:'
-    #else
-    #  PR_APM=''
-    #fi
-    
     
     ###
     # Finally, the prompt.
 
     ## COLOR DEFINITION
-    PR_PARENTHESE_COLOR=${PR_LIGHT_BLUE}
+    PR_PARENTHESE_COLOR=${PR_NO_COLOUR}
     PR_CORNER_COLOR=${PR_GREEN}
     PR_LINE_COLOR=${PR_LIGHT_GREEN}
+    PR_CWD_COLOR=${PR_GREEN}
+    PR_DATETIME_COLOR=${PR_YELLOW}
 
+    # root priviledge color
+    PR_WITH_ROOT_COLOR=${PR_RED}
+    PR_WITHOUT_ROOT_COLOR=${PR_NO_COLOUR}
+
+    # cmd execution color
+    PR_SUCCESS_COLOR=${PR_LIGHT_GREEN}
+    PR_FAIL_COLOR=${PR_RED}
+
+
+
+    ## Prompts
     
     PROMPT='$PR_SET_CHARSET$PR_STITLE${(e)PR_TITLEBAR}\
 $PR_LINE_COLOR$PR_SHIFT_IN$PR_CORNER_COLOR$PR_ULCORNER$PR_LINE_COLOR$PR_HBAR$PR_SHIFT_OUT$PR_PARENTHESE_COLOR(\
 $PR_BLUE%(!.%SROOT%s.%n)$PR_RED@%m>$PR_YELLOW%l$STATUS_LINE_PR\
 $PR_PARENTHESE_COLOR)$PR_LINE_COLOR$PR_SHIFT_IN$PR_LINE_COLOR${(e)PR_FILLBAR}$PR_LINE_COLOR$PR_SHIFT_OUT$PR_PARENTHESE_COLOR(\
-$PR_MAGENTA%$PR_PWDLEN<...<%~%<<\
+$PR_CWD_COLOR%$PR_PWDLEN<...<%~%<<\
 $PR_PARENTHESE_COLOR)$PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_CORNER_COLOR$PR_URCORNER$PR_SHIFT_OUT\
 
 $PR_LINE_COLOR$PR_SHIFT_IN$PR_CORNER_COLOR$PR_LLCORNER$PR_LINE_COLOR$PR_HBAR$PR_SHIFT_OUT$PR_PARENTHESE_COLOR(\
-${(e)PR_APM}$PR_YELLOW$$\
-$PR_LIGHT_BLUE:%(!.$PR_RED.$PR_NO_COLOUR)%#$PR_PARENTHESE_COLOR)\
+%(?.$PR_SUCCESS_COLOR.$PR_FAIL_COLOR)%(?..$?${PR_NO_COLOUR}:)$PR_YELLOW$$\
+$PR_GREEN:%(!.$PR_WITH_ROOT_COLOR.$PR_WITHOUT_ROOT_COLOR)%#$PR_PARENTHESE_COLOR)\
 $PR_NO_COLOUR '
     
-    RPROMPT='$PR_PARENTHESE_COLOR($PR_YELLOW%D{%m/%d-%H:%M}$PR_PARENTHESE_COLOR)$PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_CORNER_COLOR$PR_LRCORNER$PR_LINE_COLOR$PR_SHIFT_OUT$PR_NO_COLOUR'
+    RPROMPT='$PR_PARENTHESE_COLOR($PR_DATETIME_COLOR%D{%c}$PR_GREEN:$PR_BATTERY_COLOR$PR_BATTERY_INFO%%$PR_LINE_COLOR:$PR_CHARGING_STATUS_COLOR$PR_CHARGING_STATUS$PR_PARENTHESE_COLOR)$PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_CORNER_COLOR$PR_LRCORNER$PR_LINE_COLOR$PR_SHIFT_OUT$PR_NO_COLOUR'
     
     PS2='$PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT\
 $PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT$PR_PARENTHESE_COLOR(\
 $PR_YELLOW%_$PR_PARENTHESE_COLOR)$PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT\
 $PR_LINE_COLOR$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT$PR_PARENTHESE_COLOR)$PR_NO_COLOUR '
+
 }
 
 add_update_status() {
@@ -467,6 +438,7 @@ add_update_status() {
     # usage: add_update_status git command $PR_GREEN
     local COLOR_CODE=$3
     local RESET_COLOR_CODE=$PR_NO_COLOUR
+    local RESULT_COLOR_CODE=
 
     local prefix=$1
     local cmd=$2
@@ -481,7 +453,7 @@ add_update_status() {
     if [ "$execute_result" ] ; then
         # CMD_STRING and CMD_STRING_PR need to be in the same length, but one with the color code, to avoid length calculation includes color code as strings.
         CMD_STRING="|${prefix}${seperator}${execute_result}"
-        CMD_STRING_PR="${RESET_COLOR_CODE}|${COLOR_CODE}${prefix}${color_seperator}${execute_result}$RESET_COLOR_CODE"
+        CMD_STRING_PR="${PR_PARENTHESE_COLOR}|${COLOR_CODE}${prefix}${color_seperator}$RESULT_COLOR_CODE${execute_result}"
     else
         CMD_STRING=""
         CMD_STRING_PR=""
@@ -513,7 +485,7 @@ update_virtualenv_name() {
 ## Status :: Jobs Number
 
 update_job_num() {
-    add_update_status job "jobs | gwc -l" ${PR_LIGHT_BLUE}
+    add_update_status job "echo %j" ${PR_BLUE}
 }
 
 show_info () {
@@ -522,6 +494,24 @@ show_info () {
     #echo "$fg[yellow][Current path]\n$reset_color$PATH"
     # show network info
     #echo "$fg[yellow][Networking]$reset_color"
+}
+
+update_battery_info() {
+    ## Getting Battery Info
+
+    # Battery info
+    [[ "`pmset -g batt`" =~ '([0-9]+)\%' ]] && PR_BATTERY_INFO=$match[1]
+    [[ "`pmset -g batt`" =~ 'charged|charging|finishing charg|discharging' ]] && PR_CHARGING_STATUS=$MATCH
+
+    # battery color
+    PR_BATTERY_COLOR=${PR_RED}
+    [[ $PR_BATTERY_INFO -gt "30" ]] && PR_BATTERY_COLOR=${PR_YELLOW}
+    [[ $PR_BATTERY_INFO -gt "60" ]] && PR_BATTERY_COLOR=${PR_BLUE}
+    [[ $PR_BATTERY_INFO -gt "95" ]] && PR_BATTERY_COLOR=${PR_GREEN}
+
+    [[ $PR_CHARGING_STATUS == "charged" ]] && PR_CHARGING_STATUS_COLOR=${PR_GREEN}
+    [[ $PR_CHARGING_STATUS == "charging" ]] && PR_CHARGING_STATUS_COLOR=${PR_YELLOW}
+    [[ $PR_CHARGING_STATUS == "discharging" ]] && PR_CHARGING_STATUS_COLOR=${PR_RED}
 }
 
 # start prompt
