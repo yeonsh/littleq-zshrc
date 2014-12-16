@@ -501,7 +501,7 @@ update_battery_info() {
 
     # Battery info
     [[ "`pmset -g batt`" =~ '([0-9]+)\%' ]] && PR_BATTERY_INFO=$match[1]
-    [[ "`pmset -g batt`" =~ 'charged|charging|finishing charg|discharging' ]] && PR_CHARGING_STATUS=$MATCH
+    [[ "`pmset -g batt`" =~ 'charged|charging|finishing charge|discharging' ]] && PR_CHARGING_STATUS=$MATCH
 
     # battery color
     PR_BATTERY_COLOR=${PR_RED}
