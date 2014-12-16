@@ -287,7 +287,13 @@ function precmd {
     PR_PWDLEN=""
     
     local promptsize=${#${(%):---(%m@%n:%l)()--}}
-    local pwdsize=${#${(%):-%~}}
+    local pwdpath=${(%):-%~}
+
+    local pwdsize_unicode=`python -c "print len('$pwdpath')"`
+    local chinesechar_size=`python -c "import re; print len(''.join(re.findall(ur'[\\u4e00-\\u9fff]+', '$pwdpath'.decode('utf-8'))))"`
+
+    # chinese will be treat as 3 times as length of normal charactor
+    let "pwdsize = $pwdsize_unicode - $chinesechar_size"
     let "total_occupied=$promptsize+$pwdsize+${#STATUS_LINE}"
 
     if [[ $total_occupied -gt $TERMWIDTH ]]; then
