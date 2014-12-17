@@ -2,8 +2,8 @@
 source $HOME/.profile
 
 # Libraries
-source ~/github/my-zshrc/.virtualenv.zsh
-source ~/github/my-zshrc/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source ~/github/littleq-zshrc/.virtualenv.zsh
+source ~/github/littleq-zshrc/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 
 httpserver () {
