@@ -3,7 +3,7 @@ littleq-zshrc
 
 Zsh Configuration of Colin Su
 
-##Screenshots
+## Screenshots
 
 ![zshrc-screenshot-1](https://cloud.githubusercontent.com/assets/374786/5473450/7828d20e-8644-11e4-8a52-4606e4cadc15.png)
 
@@ -17,4 +17,14 @@ Zsh Configuration of Colin Su
 * Supports Git Branch
 * Enabled beautified auto-completion feature
 
+## Setup
 
+To install:
+
+```shell
+mkdir -p ~/github/
+cd ~/github
+git clone git@github.com:littleq0903/littleq-zshrc.git
+cd
+ln -s ~/github/littleq-zshrc/.zshrc .
+```
