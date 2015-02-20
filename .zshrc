@@ -221,11 +221,7 @@ zstyle ':completion:*:warnings' format $'\e[01;31m -- O_O! No Matches Found --\e
 alias cp='cp -i'
 alias mv='mv -i'
 alias rm='rm -i'
-if [ "$MACHINE_OS" = "ubuntu" ]; then
-    alias ls="ls --color"
-else
-    alias ls='gls --color'
-fi
+alias ls='gls --color'
 alias ll='ls -l'
 alias la='ls -a'
 alias lla='ls -al'
@@ -250,6 +246,7 @@ function pless() {
 if [ $MACHINE_OS = "ubuntu" ]; then
     alias pbcopy="xclip -selection clipboard -i"
     alias pbpaste="xclip -selection clipboard -o"
+    alias ls="ls --color"
 fi
 
 #路径别名 进入相应的路径时只要 cd ~xxx
@@ -258,7 +255,7 @@ hash -d dropbox="$HOME/Dropbox"
 hash -d github="$HOME/github"
 hash -d googlecode="$HOME/googlecode"
 hash -d tagtoo="$HOME/github_tagtoo/"
-
+hash -d desktop="$HOME/Desktop"
 
 #效果超炫的提示符，如需要禁用，注释下面配置   
 function precmd {
