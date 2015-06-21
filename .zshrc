@@ -3,6 +3,7 @@ source $HOME/.profile
 
 # Libraries
 source ~/github/littleq-zshrc/.virtualenv.zsh
+# git submodule update --init --recursive
 source ~/github/littleq-zshrc/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 
@@ -168,7 +169,8 @@ zstyle ':completion:*:*:default' force-list always
 
 if [ "$MACHINE_OS" = "macosx" ] ; then
 else
-	alias gdircolors="dircolors"
+    # brew install coreutils
+	#alias gdircolors="dircolors"
     if [ -f /etc/DIR_COLORS ] ; then
         eval $(gdircolors -b /etc/DIR_COLORS);
     else
@@ -527,6 +529,9 @@ setprompt
 
 # Startup messages
 show_info
+
+# TaskWarrior
+# brew install task
 task
 
 # added by travis gem
