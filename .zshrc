@@ -2,9 +2,9 @@
 source $HOME/.profile
 
 # Libraries
-source ~/github/littleq-zshrc/.virtualenv.zsh
+source ~/Dropbox/github/littleq-zshrc/.virtualenv.zsh
 # git submodule update --init --recursive
-source ~/github/littleq-zshrc/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source ~/Dropbox/github/littleq-zshrc/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 
 httpserver () {
@@ -95,16 +95,6 @@ plaintext() {
     pbpaste -Prefer txt | pbcopy
 }
 
-
-## Function to connect the instances in the internal cloud (PLSM Cloud)
-connect_plsm_instance () {
-    if [ $# -ne 1 ]; then
-        echo "Usage: connect_plsm_instance <private ip>";
-        echo "private ip: the private ip of the instance in the PLSM private cloud";
-    fi
-
-    ssh -t littleq@140.119.164.155 "ssh -i ~/.ssh/id_littleq-plsm ubuntu@$1"
-}
 
 ## Function to check the ports are listening any ports on this machine
 openports () {
@@ -533,6 +523,3 @@ show_info
 # TaskWarrior
 # brew install task
 task
-
-# added by travis gem
-[ -f /Users/littleq/.travis/travis.sh ] && source /Users/littleq/.travis/travis.sh
